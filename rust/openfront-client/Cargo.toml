@@ -1,0 +1,102 @@
+[package]
+name = "openfront-client"
+version = "0.1.0"
+edition = "2021"
+authors = ["OpenFront Contributors"]
+description = "High-performance Rust client for OpenFront.io"
+license = "GPL-3.0"
+
+[dependencies]
+# Core Game Engine & Rendering
+bevy = { version = "0.14", default-features = false, features = [
+    "bevy_render",
+    "bevy_core_pipeline",
+    "bevy_sprite",
+    "bevy_text",
+    "bevy_ui",
+    "bevy_winit",
+    "bevy_asset",
+    "bevy_scene",
+    "webgl2",        # For WASM support
+    "x11",           # Linux support
+    "wayland",       # Linux Wayland support
+    "png",           # PNG image loading
+    "jpeg",          # JPEG image loading
+    "multi_threaded", # Multi-threading support
+] }
+
+# UI Framework for overlays, menus, settings
+bevy_egui = "0.29"
+egui = "0.28"
+
+# Networking
+tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "time", "sync"] }
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+futures-util = "0.3"
+reqwest = { version = "0.11", features = ["json"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"  # For initial compatibility with JS client
+bincode = "1.3"     # For optimized binary serialization later
+
+# Math & Geometry (Bevy includes glam, but explicit for other uses)
+glam = { version = "0.28", features = ["serde"] }
+
+# Utilities
+anyhow = "1.0"      # Error handling
+thiserror = "1.0"   # Custom error types
+tracing = "0.1"     # Logging
+tracing-subscriber = "0.3"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.10", features = ["v4", "serde"] }
+rand = "0.8"
+dirs = "5.0"        # For config directory
+once_cell = "1.19"  # For global state
+
+# Asset management
+image = "0.25"      # Image processing
+ab_glyph = "0.2"    # Font rendering
+
+# Platform-specific dependencies
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
+    "Document",
+    "Element",
+    "HtmlElement",
+    "Window",
+    "WebSocket",
+    "MessageEvent",
+    "CloseEvent",
+    "ErrorEvent",
+    "BinaryType",
+    "Storage",
+    "console",
+] }
+console_error_panic_hook = "0.1"
+tracing-wasm = "0.2"
+
+# Native dependencies
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+native-tls = "0.2"
+
+[features]
+default = ["native"]
+native = []
+wasm = []
+
+[profile.dev]
+opt-level = 1  # Enable basic optimizations in debug mode for better performance
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = "z"     # Optimize for size
+lto = "fat"
+strip = true
